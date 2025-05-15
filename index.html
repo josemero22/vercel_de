@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta de API</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .result { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Consulta a una API pública</h1>
+  <button onclick="consultarAPI()">Consultar API</button>
+
+  <div class="result" id="resultado">
+    <!-- Aquí se mostrarán los datos -->
+  </div>
+
+  <script>
+    async function consultarAPI() {
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = "Consultando...";
+
+      try {
+        // Puedes cambiar esta API por cualquier otra pública
+        const respuesta = await fetch('https://api.agify.io/?name=juan');
+        const datos = await respuesta.json();
+
+        resultado.innerHTML = `
+          <p><strong>Nombre:</strong> ${datos.name}</p>
+          <p><strong>Edad estimada:</strong> ${datos.age}</p>
+          <p><strong>Países consultados:</strong> ${datos.count}</p>
+        `;
+      } catch (error) {
+        resultado.innerHTML = "Error al consultar la API.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
