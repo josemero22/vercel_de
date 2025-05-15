@@ -2,37 +2,63 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Consulta de API</title>
+  <title>Consulta de Datos desde APIs</title>
   <style>
     body { font-family: sans-serif; margin: 20px; }
+    input, button { padding: 8px; margin-top: 10px; }
     .result { margin-top: 20px; }
   </style>
 </head>
 <body>
-  <h1>Consulta a una API pública</h1>
-  <button onclick="consultarAPI()">Consultar API</button>
+  <h1>Consulta de Datos de una Persona</h1>
+  <input type="text" id="nombre" placeholder="Escribe un nombre" />
+  <button onclick="consultarAPIs()">Consultar</button>
 
-  <div class="result" id="resultado">
-    <!-- Aquí se mostrarán los datos -->
-  </div>
+  <div class="result" id="resultado"></div>
 
   <script>
-    async function consultarAPI() {
+    async function consultarAPIs() {
+      const nombre = document.getElementById('nombre').value.trim();
       const resultado = document.getElementById('resultado');
+      
+      if (!nombre) {
+        resultado.innerHTML = "<p>Por favor, escribe un nombre.</p>";
+        return;
+      }
+
       resultado.innerHTML = "Consultando...";
 
       try {
-        // Puedes cambiar esta API por cualquier otra pública
-        const respuesta = await fetch('https://api.agify.io/?name=juan');
-        const datos = await respuesta.json();
+        // URLs de las APIs
+        const agifyURL = `https://api.agify.io/?name=${nombre}`;
+        const genderizeURL = `https://api.genderize.io/?name=${nombre}`;
+        const nationalizeURL = `https://api.nationalize.io/?name=${nombre}`;
+
+        // Consultar las APIs en paralelo
+        const [agifyRes, genderizeRes, nationalizeRes] = await Promise.all([
+          fetch(agifyURL),
+          fetch(genderizeURL),
+          fetch(nationalizeURL)
+        ]);
+
+        const agifyData = await agifyRes.json();
+        const genderizeData = await genderizeRes.json();
+        const nationalizeData = await nationalizeRes.json();
+
+        // Mostrar países con probabilidad
+        const paises = nationalizeData.country
+          .map(pais => `<li>${pais.country_id} - Probabilidad: ${(pais.probability * 100).toFixed(1)}%</li>`)
+          .join('');
 
         resultado.innerHTML = `
-          <p><strong>Nombre:</strong> ${datos.name}</p>
-          <p><strong>Edad estimada:</strong> ${datos.age}</p>
-          <p><strong>Países consultados:</strong> ${datos.count}</p>
+          <p><strong>Nombre:</strong> ${agifyData.name}</p>
+          <p><strong>Edad estimada:</strong> ${agifyData.age ?? "No disponible"}</p>
+          <p><strong>Género estimado:</strong> ${genderizeData.gender ?? "No disponible"} (${(genderizeData.probability * 100).toFixed(1)}%)</p>
+          <p><strong>Nacionalidades probables:</strong></p>
+          <ul>${paises || "<li>No disponibles</li>"}</ul>
         `;
       } catch (error) {
-        resultado.innerHTML = "Error al consultar la API.";
+        resultado.innerHTML = "<p>Error al consultar las APIs.</p>";
         console.error(error);
       }
     }
