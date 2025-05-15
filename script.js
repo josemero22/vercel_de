@@ -3,11 +3,11 @@ async function consultarAPIs() {
   const resultado = document.getElementById('resultado');
   
   if (!nombre) {
-    resultado.innerHTML = "<p>Por favor, escribe un nombre.</p>";
+    resultado.innerHTML = `<div class="alert alert-warning">Por favor, escribe un nombre.</div>`;
     return;
   }
 
-  resultado.innerHTML = "Consultando...";
+  resultado.innerHTML = `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Consultando...`;
 
   try {
     const agifyURL = `https://api.agify.io/?name=${nombre}`;
@@ -23,20 +23,40 @@ async function consultarAPIs() {
     const agifyData = await agifyRes.json();
     const genderizeData = await genderizeRes.json();
     const nationalizeData = await nationalizeRes.json();
+    const generoMap = {
+      male: "Masculino",
+      female: "Femenino",
+      null: "No disponible",
+      undefined: "No disponible"
+    };
+    const generoEsp = generoMap[genderizeData.gender] ?? "No disponible";
 
+
+    // Construir lista con banderas
     const paises = nationalizeData.country
-      .map(pais => `<li>${pais.country_id} - Probabilidad: ${(pais.probability * 100).toFixed(1)}%</li>`)
+      .map(pais => {
+        // Flagcdn usa códigos en minúsculas
+        const codeLower = pais.country_id.toLowerCase();
+        const flagUrl = `https://flagcdn.com/w40/${codeLower}.png`;
+        return `
+          <li class="mb-1">
+            <img src="${flagUrl}" alt="Bandera ${pais.country_id}" class="flag-icon" />
+            <strong>${pais.country_id}</strong> - Probabilidad: ${(pais.probability * 100).toFixed(1)}%
+          </li>
+        `;
+      })
       .join('');
 
     resultado.innerHTML = `
       <p><strong>Nombre:</strong> ${agifyData.name}</p>
       <p><strong>Edad estimada:</strong> ${agifyData.age ?? "No disponible"}</p>
-      <p><strong>Género estimado:</strong> ${genderizeData.gender ?? "No disponible"} (${(genderizeData.probability * 100).toFixed(1)}%)</p>
+      <p><strong>Género estimado:</strong> ${generoEsp} (${(genderizeData.probability * 100).toFixed(1)}%)</p>
+      <!-- <p><strong>Género estimado:</strong> ${genderizeData.gender ?? "No disponible"} (${(genderizeData.probability * 100).toFixed(1)}%)</p> --> 
       <p><strong>Nacionalidades probables:</strong></p>
-      <ul>${paises || "<li>No disponibles</li>"}</ul>
+      <ul class="list-unstyled">${paises || "<li>No disponibles</li>"}</ul>
     `;
   } catch (error) {
-    resultado.innerHTML = "<p>Error al consultar las APIs.</p>";
+    resultado.innerHTML = `<div class="alert alert-danger">Error al consultar las APIs.</div>`;
     console.error(error);
   }
 }

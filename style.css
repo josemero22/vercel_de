@@ -3,3 +3,16 @@
     .result { margin-top: 20px; }
     .ul {
   padding-left: 20px;}
+  /* Ajustes mínimos, Bootstrap ya da mucho estilo */
+
+.result p {
+  font-size: 1.1rem;
+}
+
+.flag-icon {
+  width: 24px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid #ddd;
+}
